@@ -16,11 +16,10 @@ def shorten_link(access_token, url_to_shorten):
     response.raise_for_status()
     api_response = response.json()
 
-    if "response" not in api_response:
-        raise requests.exceptions.HTTPError(api_response["error"]["error_msg"])
+    if "response" in api_response:
+        return api_response["response"]["short_url"]
 
-    return api_response["response"]["short_url"]
-
+    raise requests.exceptions.HTTPError(api_response["error"]["error_msg"])
 
 def get_clicks_count(access_token, short_url):
     short_url_id = short_url.split("/")[-1]
@@ -39,15 +38,11 @@ def get_clicks_count(access_token, short_url):
     api_response = response.json()
 
 
-    if "response" not in api_response or "stats" not in api_response["response"]:
-        raise requests.exceptions.HTTPError(api_response["error"]["error_msg"])
-
-    stats = api_response["response"]["stats"]
-    if stats and "clicks" in stats[0]:
+    if "response" in api_response or "stats" in api_response["response"]:
+        stats = api_response["response"]["stats"]
         return stats[0]["clicks"]
 
-    # print("Статистика по кликам отсутствует.")
-    return 0
+    raise requests.exceptions.HTTPError(api_response["error"]["error_msg"])
 
 def is_short_link(access_token, url):
     parsed_url = urlparse(url)
